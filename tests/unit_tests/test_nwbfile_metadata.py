@@ -8,6 +8,7 @@ import pytest
 from nwbinspector import InspectorMessage, Importance
 from nwbinspector.checks.nwbfile_metadata import (
     check_experimenter,
+    check_experimenter_form,
     check_experiment_description,
     check_institution,
     check_keywords,
@@ -69,11 +70,113 @@ def test_check_session_start_time_future_date_fail():
     )
 
 
+def test_check_experimenter_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="Lastname, Firstname",
+    )
+    assert check_experimenter(nwbfile) is None
+
+
 def test_check_experimenter():
     assert check_experimenter(minimal_nwbfile) == InspectorMessage(
         message="Experimenter is missing.",
         importance=Importance.BEST_PRACTICE_SUGGESTION,
         check_function_name="check_experimenter",
+        object_type="NWBFile",
+        object_name="root",
+        location="/",
+    )
+
+
+def test_check_experimenter_form_pass():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="Lastname, Firstname",
+    )
+    assert check_experimenter_form(nwbfile) is None
+
+
+def test_check_experimenter_pass_role():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="TestRole: Lastname, Firstname",
+    )
+    assert check_experimenter_form(nwbfile) is None
+
+
+def test_check_experimenter_pass_middle():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="Lastname, Firstname Middlename",
+    )
+    assert check_experimenter_form(nwbfile) is None
+
+
+def test_check_experimenter_pass_middle_initial():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="Lastname, Firstname M.",
+    )
+    assert check_experimenter_form(nwbfile) is None
+
+
+def test_check_experimenter_pass_two_last_names():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="Lastname, Firstname M.",
+    )
+    assert check_experimenter_form(nwbfile) is None
+
+
+def test_check_experimenter_pass_special_character():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="Lastname1-Lastname2, Firstname",
+    )
+    assert check_experimenter_form(nwbfile) is None
+
+
+def test_check_experimenter_pass_apostrophe():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="O'Lastname, Firstname",
+    )
+    assert check_experimenter_form(nwbfile) is None
+
+
+def test_check_experimenter_form():
+    nwbfile = NWBFile(
+        session_description="",
+        identifier=str(uuid4()),
+        session_start_time=datetime.now(),
+        experimenter="Firstname Lastname",
+    )
+    assert check_experimenter_form(nwbfile) == InspectorMessage(
+        message=(
+            "Experimenter 'Firstname Lastname' is not of the correct form. "
+            "It should be either 'Lastname, Firstname' or 'Lastname, Firstname M.I.' where M. I. are the "
+            "middle initials. It is also possible to include a  role before the name as 'Role: '."
+            "E.g., 'Author: Doe, Jane E.' or 'Lab Tech: Doe, John Michael'."
+        ),
+        importance=Importance.BEST_PRACTICE_SUGGESTION,
+        check_function_name="check_experimenter_form",
         object_type="NWBFile",
         object_name="root",
         location="/",

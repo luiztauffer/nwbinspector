@@ -12,6 +12,7 @@ duration_regex = (
     r"?M)?(\d+(?:\.\d+)?S)?)?$"
 )
 species_regex = r"[A-Z][a-z]* [a-z]+"
+experimenter_regex = r"(.*:)?([^0-9]+),\s([^0-9]+)(\s[^0-9]+)?"
 
 PROCESSING_MODULE_CONFIG = ["ophys", "ecephys", "icephys", "behavior", "misc", "ogen", "retinotopy"]
 
@@ -42,6 +43,21 @@ def check_experimenter(nwbfile: NWBFile):
     """Check if an experimenter has been added for the session."""
     if not nwbfile.experimenter:
         return InspectorMessage(message="Experimenter is missing.")
+
+
+@register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
+def check_experimenter_form(nwbfile: NWBFile):
+    """Check if the form of the experimenter field matches the Best Practice."""
+    for name in nwbfile.experimenter:
+        if not re.fullmatch(pattern=experimenter_regex, string=name):
+            yield InspectorMessage(
+                message=(
+                    f"Experimenter '{name}' is not of the correct form. "
+                    "It should be either 'Lastname, Firstname' or 'Lastname, Firstname M.I.' where M. I. are the "
+                    "middle initials. It is also possible to include a  role before the name as 'Role: '."
+                    "E.g., 'Author: Doe, Jane E.' or 'Lab Tech: Doe, John Michael'."
+                )
+            )
 
 
 @register_check(importance=Importance.BEST_PRACTICE_SUGGESTION, neurodata_type=NWBFile)
