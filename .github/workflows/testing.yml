@@ -16,24 +16,30 @@ jobs:
       - name: Get current year-month
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m')"
-      - if: ${{ matrix.os == 'macos-latest' }}
-        name: Allow MacOS to use virtualenv
-        run: |
-          brew install pip
-          pip install virtualenv
-      - uses: syphar/restore-virtualenv@v1
-        id: cache-virtualenv
+      - name: Cache conda
+        uses: actions/cache@v1
         with:
-          custom_cache_key_element: ${{ steps.date.outputs.date }}
-
-      - if: steps.cache-virtualenv.outputs.cache-hit != 'true'
-        uses: s-weigand/setup-conda@v1
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}-${{ steps.date.outputs.date }}
+      - if: steps.cache-virtualenv.outputs.cache-hit == 'false'
+        uses: goanpeca/setup-miniconda@v1
         with:
+          activate-environment: myenvname
           update-conda: true
           python-version: ${{ matrix.python-version }}
           conda-channels: conda-forge
+          channel-priority: strict
+          environment-file: environment.yml
+          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
 
-      - if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+ #     - if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+ #       uses: s-weigand/setup-conda@v1
+ #       with:
+ #         update-conda: true
+ #         python-version: ${{ matrix.python-version }}
+ #         conda-channels: conda-forge
+
+      - if: steps.cache-virtualenv.outputs.cache-hit == 'false'
         name: Install pytest, package, and ros3 if the environment was not cached
         run: |
           pip install pytest
@@ -41,6 +47,10 @@ jobs:
           pip install -e .
           pip uninstall -y h5py
           conda install -c conda-forge h5py
+          
+      - if: steps.cache-virtualenv.outputs.cache-hit == 'true'
+        run: conda activate myenvname
+          
       - name: Run pytest with coverage
         run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
