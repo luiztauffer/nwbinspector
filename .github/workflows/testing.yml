@@ -17,11 +17,12 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m')"
       - name: Cache conda
+        id: cache-conda
         uses: actions/cache@v1
         with:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}-${{ steps.date.outputs.date }}
-      - if: steps.cache-virtualenv.outputs.cache-hit == 'false'
+      - if: steps.cache-conda.outputs.cache-hit == 'false'
         uses: goanpeca/setup-miniconda@v1
         with:
           activate-environment: myenvname
@@ -39,15 +40,15 @@ jobs:
  #         python-version: ${{ matrix.python-version }}
  #         conda-channels: conda-forge
 
-      - if: steps.cache-virtualenv.outputs.cache-hit == 'false'
-        name: Install pytest, package, and ros3 if the environment was not cached
+      - if: steps.cache-conda.outputs.cache-hit == 'false'
+        name: Install pytest, and ros3 if the environment was not cached
         run: |
           pip install pytest
           pip install pytest-cov
           pip uninstall -y h5py
           conda install -c conda-forge h5py
           
-      - if: steps.cache-virtualenv.outputs.cache-hit == 'true'
+      - if: steps.cache-conda.outputs.cache-hit == 'true'
         run: conda activate myenvname
           
       - name: Run pytest with coverage
