@@ -22,27 +22,20 @@ jobs:
         with:
           path: ~/conda_pkgs_dir
           key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}-${{ steps.date.outputs.date }}
-      - if: steps.cache-conda.outputs.cache-hit != 'true'
-        uses: goanpeca/setup-miniconda@v1
+
+
+      - if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+        uses: s-weigand/setup-conda@v1
         with:
-          activate-environment: myenvname
           update-conda: true
           python-version: ${{ matrix.python-version }}
           conda-channels: conda-forge
-          channel-priority: strict
-          environment-file: environment.yml
-          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
-
- #     - if: steps.cache-virtualenv.outputs.cache-hit != 'true'
- #       uses: s-weigand/setup-conda@v1
- #       with:
- #         update-conda: true
- #         python-version: ${{ matrix.python-version }}
- #         conda-channels: conda-forge
 
       - if: steps.cache-conda.outputs.cache-hit != 'true'
-        name: Install pytest, and ros3 if the environment was not cached
+        name: Install pytest, environment, and ros3 if the environment was not cached
         run: |
+          conda env create -f environment.yml
+          conda activate myenvname
           pip install pytest
           pip install pytest-cov
           pip uninstall -y h5py
