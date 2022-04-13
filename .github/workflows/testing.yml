@@ -35,6 +35,7 @@ jobs:
         name: Install pytest, environment, and ros3 if the environment was not cached
         run: |
           conda env create -f environment.yml
+          $CONDA/bin/conda init powershell
           $CONDA/bin/conda activate myenvname
           pip install pytest
           pip install pytest-cov
@@ -43,6 +44,7 @@ jobs:
           
       - if: steps.cache-conda.outputs.cache-hit == 'true'
         run: |
+          $CONDA/bin/conda init powershell
           $CONDA/bin/conda activate myenvname
           
       - name: Run pytest with coverage
