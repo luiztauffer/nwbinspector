@@ -35,6 +35,7 @@ jobs:
         name: Install pytest, environment, and ros3 if the environment was not cached
         run: |
           conda env create -f environment.yml
+          bash
           conda activate myenvname
           pip install pytest
           pip install pytest-cov
@@ -42,7 +43,9 @@ jobs:
           conda install -c conda-forge h5py
           
       - if: steps.cache-conda.outputs.cache-hit == 'true'
-        run: conda activate myenvname
+        run: |
+          bash
+          conda activate myenvname
           
       - name: Run pytest with coverage
         run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
