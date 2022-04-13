@@ -16,6 +16,11 @@ jobs:
       - name: Get current year-month
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m')"
+      - if: ${{ matrix.os == 'macos-latest' }}
+        name: Allow MacOS to use virtualenv
+        run: |
+          brew install pip
+          pip install virtualenv
       - uses: syphar/restore-virtualenv@v1
         id: cache-virtualenv
         with:
