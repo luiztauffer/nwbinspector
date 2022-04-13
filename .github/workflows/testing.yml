@@ -46,7 +46,9 @@ jobs:
           source ${CONDA}/bin/activate myenvname
           
       - name: Run pytest with coverage
-        run: pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
+        run: |
+          source ${CONDA}/bin/activate myenvname
+          pytest --cov=./ --cov-report xml:./nwbinspector/nwbinspector/coverage.xml
       - if: ${{ matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest' }}
         name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
