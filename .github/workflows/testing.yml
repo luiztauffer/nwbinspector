@@ -35,7 +35,7 @@ jobs:
         name: Install pytest, environment, and ros3 if the environment was not cached
         run: |
           conda env create -f environment.yml
-          bash
+          conda init bash
           conda activate myenvname
           pip install pytest
           pip install pytest-cov
