@@ -20,8 +20,8 @@ jobs:
         id: cache-conda
         uses: actions/cache@v3
         with:
-          path: ${CONDA}/bin
-          key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}-${{ steps.date.outputs.date }}-1234
+          path: ~/anaconda/pkgs/
+          key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}-${{ steps.date.outputs.date }}-12345
 
 
       - if: steps.cache-virtualenv.outputs.cache-hit != 'true'
@@ -31,6 +31,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           conda-channels: conda-forge
 
+      - if: steps.cache-conda.outputs.cache-hit != 'true'
+        name: Install pytest, environment, and ros3 if the environment was not cached
+        run: |
+          conda env create -f environment.yml
+          source ${CONDA}/bin/activate myenvname
+          conda info
+          conda search numpy --info
+          
       - if: steps.cache-conda.outputs.cache-hit != 'true'
         name: Install pytest, environment, and ros3 if the environment was not cached
         run: |
