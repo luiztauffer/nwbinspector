@@ -32,7 +32,7 @@ jobs:
           conda-channels: conda-forge
           
       - if: steps.cache-conda.outputs.cache-hit != 'true'
-        name: Install pytest, environment, and ros3 if the environment was not cached
+        name: Install pytest, environment, and ros3 if the environment was not cached - testing
         run: |
           conda env create -f environment.yml
           source ${CONDA}/bin/activate myenvname
